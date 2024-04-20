@@ -1,75 +1,24 @@
-import os
-from openai import OpenAI
-from utils.file_utils import extract_text_from_html, extract_text_from_pdf
-from sumy.parsers.plaintext import PlaintextParser
-from sumy.nlp.tokenizers import Tokenizer
-from sumy.summarizers.lex_rank import LexRankSummarizer
+import webbrowser
 
-def get_api_key():
-    """Retrieve API Key from environment variable."""
-    api_key = os.getenv('OPENAI_API_KEY')
-    if api_key is None:
-        raise ValueError("API key not found. Please set the OPENAI_API_KEY environment variable.")
-    return api_key
+def open_chatgpt_with_prompt():
+    """Open a web browser to ChatGPT with an engineered prompt for creating an OSINT report."""
+    # Ask the user for the name of the subject of the investigation
+    subject_name = input("Please enter the name of the subject of the investigation: ")
+    
+    prompt = (f"Hello. Please create a detailed plaintext OSINT report about {subject_name}. "
+              "Focus particularly on extracting any personal details about this individual that would be helpful for OSINT purposes. "
+              "Summarize the key information in bullet point format to highlight connections and insights relevant to technology and educational sectors. "
+              "Ensure the report is concise and easy to navigate.")
 
-def summarize_text_with_openai(text):
-    print(len(text))
-    """Uses OpenAI API to get summarized text formatted as an OSINT report."""
-    client = OpenAI(api_key=get_api_key())
-    try:
-        response = client.completions.create(model="gpt-3.5-turbo",
-        prompt=f"Create a concise OSINT report based on the following summary:\n\n{text}",
-        max_tokens=500,
-        temperature=0.5)
-        return response.choices[0].text.strip()
-    except Exception as e:
-        print(f"Error during summarization with OpenAI: {e}")
-        return "Error in summarization."
+    # URL to OpenAI's ChatGPT or a specific upload page (adjust the URL as necessary)
+    chatgpt_url = "https://chat.openai.com/chat"
 
-def summarize_with_sumy(text, sentences_count=5):
-    """Uses Sumy to pre-summarize the text."""
-    parser = PlaintextParser.from_string(text, Tokenizer("english"))
-    summarizer = LexRankSummarizer()
-    summary = summarizer(parser.document, sentences_count)
-    return ' '.join(str(sentence) for sentence in summary)
-
-def create_osint_report(directory):
-    """Creates an OSINT report from HTML and PDF files in the specified directory."""
-    report_filename = os.path.join(directory, 'OSINT_Report.txt')
-    summaries = []
-
-    for filename in os.listdir(directory):
-        file_path = os.path.join(directory, filename)
-        text = None
-
-        if filename.endswith('.html'):
-            with open(file_path, 'r', encoding='utf-8') as file:
-                html_content = file.read()
-                text = extract_text_from_html(html_content)
-        elif filename.endswith('.pdf'):
-            text = extract_text_from_pdf(file_path)
-
-        if text:
-            # Initial summarization using Sumy
-            pre_summary = summarize_with_sumy(text)
-            # Further summarization using OpenAI
-            final_summary = summarize_text_with_openai(pre_summary)
-            summaries.append((filename, final_summary))
-        else:
-            print(f"Skipped unsupported file type or empty content: {filename}")
-
-    # Write the report with formatted sections
-    with open(report_filename, 'w') as report_file:
-        report_file.write("OSINT Report\n")
-        report_file.write("====================\n")
-        for filename, summary in summaries:
-            report_file.write(f"File: {filename}\n")
-            report_file.write("Key Points:\n")
-            report_file.write(summary)
-            report_file.write("\n--------------------\n\n")
-
-    print(f"Report compiled successfully at {report_filename}")
+    # This could potentially be extended to pass the prompt via URL parameters if supported
+    print("Please copy the following prompt and use it in the ChatGPT interface after uploading your documents:\n")
+    print(prompt)
+    
+    # Opens the default web browser to the ChatGPT page
+    webbrowser.open(chatgpt_url)
 
 if __name__ == "__main__":
-    directory = input("Enter the path to the directory containing the files for the report: ")
-    create_osint_report(directory)
+    open_chatgpt_with_prompt()

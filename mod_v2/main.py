@@ -1,5 +1,5 @@
 from search_query import handle_search_query
-from create_report import create_osint_report
+from create_report import open_chatgpt_with_prompt
 
 def display_menu():
     print("""
@@ -29,8 +29,7 @@ def main():
         elif choice == '3':
             print("Upload Data functionality not implemented yet.")
         elif choice == '4':
-            directory = input("Enter the path to the directory containing the files for the report: ")
-            create_osint_report(directory)
+            open_chatgpt_with_prompt()
         elif choice == '5':
             print("Create Phishing Email functionality not implemented yet.")
         elif choice == '0':
